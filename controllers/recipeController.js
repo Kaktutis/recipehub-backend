@@ -68,20 +68,24 @@ export const updateRecipe = async (req, res) => {
 
 // DELETE /api/recipes/:id
 export const deleteRecipe = async (req, res) => {
-  const recipe = await Recipe.findById(req.params.id);
+  try {
+    const recipe = await Recipe.findById(req.params.id);
 
-  if (!recipe) {
-    return res.status(404).json({ message: "Recipe not found" });
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    if (recipe.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await Ingredient.deleteMany({ recipe: recipe._id });
+    await Recipe.deleteOne({ _id: recipe._id });
+
+    res.json({ message: "Recipe deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete recipe", error: err.message });
   }
-
-  if (recipe.user.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: "Not authorized" });
-  }
-
-  await Ingredient.deleteMany({ recipe: recipe._id });
-  await recipe.remove();
-
-  res.json({ message: "Recipe deleted" });
 };
 
 // GET /api/recipes/user/:userId

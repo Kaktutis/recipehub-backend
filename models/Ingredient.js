@@ -10,11 +10,7 @@ const ingredientSchema = new mongoose.Schema(
       type: String, // e.g., "2 cups", "1 tsp", etc.
       required: true,
     },
-    recipe: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Recipe",
-      required: true,
-    },
+    recipe: { type: mongoose.Schema.Types.ObjectId, ref: "Recipe" },
   },
   {
     timestamps: true,
