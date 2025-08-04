@@ -103,4 +103,4 @@ MIT
 
 ## Contact
 
-For questions or support, open an issue or contact [yourusername](https://github.com/J-Vidale).
+For questions or support, open an issue or contact [J-Vidale](https://github.com/J-Vidale).
