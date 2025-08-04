@@ -53,17 +53,11 @@ export const registerUser = async (req, res) => {
 
 // POST /api/auth/login
 export const loginUser = async (req, res) => {
+  const { username, password } = req.body;
+
   try {
-    const { username, password } = req.body;
-
-    // Find user by username
     const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
