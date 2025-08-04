@@ -44,30 +44,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// Login user
-export const loginUser = async (req, res) => {
-  const { username, password } = req.body;
 
-  try {
-    const user = await User.findOne({ username });
-
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid username or password' });
-    }
-
-    res.json({
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      token: generateToken(user._id),
-    });
-  } catch (err) {
-    res.status(500).json({
-      message:
-        process.env.NODE_ENV === 'development' ? err.message : 'Server error',
-    });
-  }
-};
 
 // Get logged-in user info
 export const getMe = async (req, res) => {

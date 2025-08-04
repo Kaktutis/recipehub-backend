@@ -1,14 +1,33 @@
-import User from "../models/User.js";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+
+// Generate JWT
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+};
 
 // POST /api/auth/register
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "Email already in use" });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -18,22 +37,17 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    // Optionally, auto-login after registration:
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
     res.status(201).json({
-      message: "User registered",
-      token,
-      user: {
-        _id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-      },
+      _id: newUser._id,
+      username: newUser.username,
+      email: newUser.email,
+      token: generateToken(newUser._id),
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message:
+        process.env.NODE_ENV === "development" ? err.message : "Server error",
+    });
   }
 };
 
@@ -44,24 +58,25 @@ export const loginUser = async (req, res) => {
 
     // Find user by username
     const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ message: "Invalid username or password" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid username or password" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.status(200).json({
-      token,
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+    res.json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      token: generateToken(user._id),
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message:
+        process.env.NODE_ENV === "development" ? err.message : "Server error",
+    });
   }
 };
