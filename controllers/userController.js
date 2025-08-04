@@ -74,5 +74,3 @@ export const getMe = async (req, res) => {
   const user = await User.findById(req.user.id).select('-password');
   res.json(user);
 };
-
-await login(formData.username, formData.password);
