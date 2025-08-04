@@ -86,12 +86,9 @@ export const deleteRecipe = async (req, res) => {
 
 // GET /api/recipes/user/:userId
 export const getRecipesByUser = async (req, res) => {
-  try {
-    const recipes = await Recipe.find({ user: req.params.userId });
-    res.json(recipes);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch recipes for user" });
-  }
+  const { userId } = req.params;
+  const recipes = await Recipe.find({ user: userId });
+  res.json(recipes);
 };
 
 // GET /api/recipes/saved
